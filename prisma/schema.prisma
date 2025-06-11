@@ -36,14 +36,34 @@ model RefreshToken {
 }
 
 model Affirmation {
-  id          String   @id @default(uuid())
+  id          String              @id @default(uuid())
   text        String
-  category    String
+  category    AffirmationCategory
   language    String
-  isPublic    Boolean  @default(false)
-  isApproved  Boolean  @default(false)
-  createdBy   User     @relation(fields: [createdById], references: [id])
+  isPublic    Boolean             @default(false)
+  isApproved  Boolean             @default(false)
+  createdBy   User                @relation(fields: [createdById], references: [id])
   createdById String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+}
+
+enum AffirmationCategory {
+  MINDFULNESS
+  INTENTION
+  GRATITUDE
+  SELF_LOVE
+  MOTIVATION
+  HEALTH
+  CAREER
+  FRIENDSHIP
+  FAMILY
+  SPIRITUALITY
+  POSITIVITY
+  CALMNESS
+  CONFIDENCE
+  WELLNESS
+  SUCCESS
+  HAPPINESS
+  PEACE
 }

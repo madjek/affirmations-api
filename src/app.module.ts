@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { AffirmationsModule } from './affirmations/affirmations.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 
@@ -10,6 +11,7 @@ import { UsersModule } from './users/users.module';
     }),
     AuthModule,
     UsersModule,
+    AffirmationsModule,
   ],
   controllers: [],
   providers: [],
