@@ -1,0 +1,38 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  password     String?
+  name         String?
+  role         Role          @default(USER)
+  affirmations Affirmation[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+enum Role {
+  USER
+  MODERATOR
+  ADMIN
+}
+
+model Affirmation {
+  id          String   @id @default(uuid())
+  text        String
+  category    String
+  language    String
+  isPublic    Boolean  @default(false)
+  isApproved  Boolean  @default(false)
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
