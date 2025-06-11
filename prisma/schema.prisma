@@ -8,20 +8,31 @@ generator client {
 }
 
 model User {
-  id           String        @id @default(uuid())
-  email        String        @unique
-  password     String?
-  name         String?
-  role         Role          @default(USER)
-  affirmations Affirmation[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id            String         @id @default(uuid())
+  email         String         @unique
+  password      String?
+  name          String?
+  role          UserRole       @default(USER)
+  refreshTokens RefreshToken[]
+  affirmations  Affirmation[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
 }
 
-enum Role {
+enum UserRole {
   USER
   MODERATOR
   ADMIN
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  createdAt DateTime @default(now())
+  revoked   Boolean  @default(false)
+  expiresAt DateTime
 }
 
 model Affirmation {
