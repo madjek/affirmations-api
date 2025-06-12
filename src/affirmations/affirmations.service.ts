@@ -10,7 +10,10 @@ import { CreateAffirmationDto } from './dto/create-affirmation.dto';
 export class AffirmationsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(userId: string, createAffirmationDto: CreateAffirmationDto) {
+  async createAffirmation(
+    userId: string,
+    createAffirmationDto: CreateAffirmationDto,
+  ) {
     return this.prisma.affirmation.create({
       data: {
         ...createAffirmationDto,
@@ -19,7 +22,7 @@ export class AffirmationsService {
     });
   }
 
-  async getPublicAffirmations(language: string) {
+  async getPublicAffirmations(language: string, userId: string) {
     const affirmations = await this.prisma.affirmation.findMany({
       where: {
         isPublic: true,
@@ -31,12 +34,65 @@ export class AffirmationsService {
         text: true,
         category: true,
         language: true,
+        createdById: true,
         createdAt: true,
         updatedAt: true,
       },
     });
 
-    return affirmations;
+    return affirmations.map(({ createdById, ...rest }) => ({
+      ...rest,
+      createdByUser: !!createdById,
+      createdByMe: createdById === userId,
+    }));
+  }
+
+  async getMyAffirmations(userId: string) {
+    const created = await this.prisma.affirmation.findMany({
+      where: {
+        createdById: userId,
+      },
+      select: {
+        id: true,
+        text: true,
+        category: true,
+        language: true,
+        createdAt: true,
+        isPublic: true,
+        isApproved: true,
+      },
+    });
+    const saved = await this.prisma.savedAffirmation.findMany({
+      where: {
+        userId,
+      },
+      select: {
+        affirmation: {
+          select: {
+            id: true,
+            text: true,
+            category: true,
+            language: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
+    const savedAffirmations = saved.map((entry) => ({
+      ...entry.affirmation,
+      saved: true,
+    }));
+    const createdAffirmations = created.map((a) => ({
+      ...a,
+      saved: false,
+    }));
+    const combinedMap = new Map<string, (typeof savedAffirmations)[0]>();
+
+    for (const a of [...createdAffirmations, ...savedAffirmations]) {
+      combinedMap.set(a.id as string, a);
+    }
+
+    return Array.from(combinedMap.values());
   }
 
   async shareAffirmation(id: string, userId: string) {
@@ -64,19 +120,36 @@ export class AffirmationsService {
     });
   }
 
-  async getSharedByMe(userId: string) {
-    return this.prisma.affirmation.findMany({
-      where: {
-        createdById: userId,
-        isPublic: true,
-        isApproved: true,
+  async saveAffirmation(id: string, userId: string): Promise<void> {
+    const affirmation = await this.prisma.affirmation.findUnique({
+      where: { id },
+    });
+
+    if (!affirmation) {
+      throw new NotFoundException('Affirmation not found');
+    }
+
+    await this.prisma.savedAffirmation.create({
+      data: {
+        userId,
+        affirmationId: id,
       },
-      include: {
-        createdBy: {
-          select: {
-            name: true,
-          },
-        },
+    });
+  }
+
+  async unsaveAffirmation(id: string, userId: string): Promise<void> {
+    const affirmation = await this.prisma.affirmation.findUnique({
+      where: { id },
+    });
+
+    if (!affirmation) {
+      throw new NotFoundException('Affirmation not found');
+    }
+
+    await this.prisma.savedAffirmation.deleteMany({
+      where: {
+        userId,
+        affirmationId: id,
       },
     });
   }

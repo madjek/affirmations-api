@@ -8,15 +8,16 @@ generator client {
 }
 
 model User {
-  id            String         @id @default(uuid())
-  email         String         @unique
-  password      String?
-  name          String?
-  role          UserRole       @default(USER)
-  refreshTokens RefreshToken[]
-  affirmations  Affirmation[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id                String             @id @default(uuid())
+  email             String             @unique
+  password          String?
+  name              String?
+  role              UserRole           @default(USER)
+  refreshTokens     RefreshToken[]
+  affirmations      Affirmation[]      @relation("UserAffirmations")
+  savedAffirmations SavedAffirmation[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 }
 
 enum UserRole {
@@ -28,42 +29,54 @@ enum UserRole {
 model RefreshToken {
   id        String   @id @default(uuid())
   token     String   @unique
-  user      User     @relation(fields: [userId], references: [id])
   userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   revoked   Boolean  @default(false)
   expiresAt DateTime
 }
 
-model Affirmation {
-  id          String              @id @default(uuid())
-  text        String
-  category    AffirmationCategory
-  language    String
-  isPublic    Boolean             @default(false)
-  isApproved  Boolean             @default(false)
-  createdBy   User                @relation(fields: [createdById], references: [id])
-  createdById String
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
-}
-
 enum AffirmationCategory {
-  MINDFULNESS
-  INTENTION
+  MOTIVATION
+  CONFIDENCE
   GRATITUDE
   SELF_LOVE
-  MOTIVATION
-  HEALTH
-  CAREER
-  FRIENDSHIP
-  FAMILY
-  SPIRITUALITY
-  POSITIVITY
-  CALMNESS
-  CONFIDENCE
-  WELLNESS
-  SUCCESS
   HAPPINESS
+  SUCCESS
+  CALMNESS
+  MINDFULNESS
+  WELLNESS
+  HEALTH
   PEACE
+  POSITIVITY
+  INTENTION
+  CAREER
+  FAMILY
+  FRIENDSHIP
+  SPIRITUALITY
+}
+
+model Affirmation {
+  id           String              @id @default(uuid())
+  text         String
+  category     AffirmationCategory
+  language     String
+  isPublic     Boolean             @default(false)
+  isApproved   Boolean             @default(false)
+  createdById  String?
+  createdBy    User?               @relation("UserAffirmations", fields: [createdById], references: [id])
+  savedByUsers SavedAffirmation[]
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+}
+
+model SavedAffirmation {
+  id            String      @id @default(uuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  affirmationId String
+  affirmation   Affirmation @relation(fields: [affirmationId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now())
+
+  @@unique([userId, affirmationId])
 }

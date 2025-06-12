@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { AffirmationCategory } from '@prisma/client';
 
 export class AffirmationResponseDto {
   @ApiProperty({
@@ -15,33 +16,46 @@ export class AffirmationResponseDto {
 
   @ApiProperty({
     description: 'The category of the affirmation',
-    example: 'Self-love',
+    example: AffirmationCategory.CALMNESS,
   })
-  category: string;
+  category: AffirmationCategory;
 
   @ApiProperty({
     description: 'The language code of the affirmation',
     example: 'en',
   })
-  language: string;
+  language?: string;
 
   @ApiProperty({
     description: 'Whether the affirmation is public',
     example: true,
   })
-  isPublic: boolean;
+  isPublic?: boolean;
 
   @ApiProperty({
     description: 'Whether the affirmation is approved by moderators',
     example: true,
   })
-  isApproved: boolean;
+  isApproved?: boolean;
 
   @ApiProperty({
-    description: 'The ID of the user who created the affirmation',
-    example: '550e8400-e29b-41d4-a716-446655440001',
+    description: 'Whether the affirmation was created by a user',
+    example: true,
   })
-  createdById: string;
+  createdByUser: boolean;
+
+  @ApiProperty({
+    description:
+      'Whether the affirmation was created by the authenticated user',
+    example: true,
+  })
+  createdByMe?: boolean;
+
+  @ApiProperty({
+    description: 'Whether the affirmation was saved by the authenticated user',
+    example: true,
+  })
+  saved?: boolean;
 
   @ApiProperty({
     description: 'The date when the affirmation was created',
@@ -53,7 +67,7 @@ export class AffirmationResponseDto {
     description: 'The date when the affirmation was last updated',
     example: '2023-01-01T00:00:00.000Z',
   })
-  updatedAt: Date;
+  updatedAt?: Date;
 }
 
 export class AffirmationListResponseDto {
